@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script/>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_1398123_asu_updates_to_install.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+    <g:evaluate>
+        var apps = new GlideAggregate("x_1398123_asu_st_available_updates");
+        apps.addQuery('available_version', 'IN', '${sysparm_app_versions}');
+        apps.groupBy('name');
+        apps.groupBy('level');
+        apps.orderBy('level');
+        apps.orderBy('name');
+        apps.setGroup(true);
+        apps.query();
+    </g:evaluate>
+
+    <h3>${gs.getMessage('The following applications will be upgraded:')}</h3>
+    <ul>
+    <j:while test="${apps.next()}">
+        <li>${apps.getValue('name')} - ${apps.getValue('level')}</li>
+    </j:while>
+    </ul>
+    <g:ui_form>
+        <input type="hidden" name="app_versions" value="${sysparm_app_versions}" />
+        <input type="hidden" name="app_count" value="${apps.getRowCount()}" />
+        <div class="form-group pull-right" style="padding-right: 20px;">
+            <g:dialog_buttons_ok_cancel ok="return actionOK()" cancel="return onCancel()" ok_text="${gs.getMessage('Install Updates')}" ok_id="ok_button" cancel_type="button" />
+        </div>
+    </g:ui_form>
+</j:jelly>]]></html>
+        <name>updates_to_install</name>
+        <processing_script><![CDATA[UpBegin();
+function UpBegin() {
+        var progress_id = '-1';
+        var status_message = '';
+
+        try {
+            var inputs = {};
+            inputs['apps'] = app_versions; // String 
+            var result = sn_fd.FlowAPI.getRunner().subflow('x_1398123_asu.batch_install_updates').inForeground().withInputs(inputs).run();
+            var outputs = result.getOutputs();
+            progress_id = outputs['progress_id'];
+            status_message = outputs['status_message'];
+
+        } catch (ex) {
+            var message = ex.getMessage();
+            status_message = message;
+            gs.addErrorMessage(progress_id + ' - ' + message);
+        }
+    //var session = gs.getSession();
+    //var URL = session.getUrlOnStack();
+    var URL = 'x_1398123_asu_installing_updates.do?';
+    URL += "&sysparm_pworker_sysid=" + progress_id + "&sysparm_message=" + status_message;
+    URL += "&sysparm_app_count=" + app_count;
+    URL += "&sysparm_app_versions=" + app_versions;
+    response.sendRedirect(URL);
+}]]></processing_script>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-04-22 19:46:35</sys_created_on>
+        <sys_id>f6e94082c3c52210937bfeac050131f9</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>updates_to_install</sys_name>
+        <sys_package display_value="Available Store Updates" source="x_1398123_asu">b7247775c3452210937bfeac050131c1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Available Store Updates">b7247775c3452210937bfeac050131c1</sys_scope>
+        <sys_update_name>sys_ui_page_f6e94082c3c52210937bfeac050131f9</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-04-22 20:06:11</sys_updated_on>
+    </sys_ui_page>
+</record_update>
